@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                String             @id @default(uuid())
+  email             String             @unique
+  fullName          String
+  passwordHash      String?
+  nid               String             @unique
+  dob               String
+  role              Role               @default(USER)
+  kycStatus         KycStatus          @default(PENDING)
+  walletAddress     String?            @unique
+  walletEncryptedKey String?
+  voterIdHash       String?            @unique
+  kycSubmission     KycSubmission?
+  offlineProfile    OfflineProfile?
+  offlineAuditEvents OfflineAuditEvent[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model KycSubmission {
+  id           String    @id @default(uuid())
+  userId       String    @unique
+  documentType String
+  documentUrl  String
+  status       KycStatus @default(PENDING)
+  reviewedBy   String?
+  reviewNote   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id])
+}
+
+model CandidateAsset {
+  id          String   @id @default(uuid())
+  candidateId Int      @unique
+  name        String
+  party       String
+  imageKey    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OfflineProfile {
+  id                    String             @id @default(uuid())
+  userId                String             @unique
+  rfidUidHash           String             @unique
+  pinHash               String?
+  pinSetupRequired      Boolean            @default(true)
+  failedPinAttempts     Int                @default(0)
+  blockedUntil          DateTime?
+  lastSeenAt            DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id])
+  auditEvents           OfflineAuditEvent[]
+  sessionAttestations   OfflineSessionAttestation[]
+}
+
+model BoothOfficer {
+  id           String                     @id @default(uuid())
+  fullName     String
+  employeeId   String                     @unique
+  pinHash      String
+  isActive     Boolean                    @default(true)
+  lastSeenAt   DateTime?
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+  attestations OfflineSessionAttestation[]
+}
+
+model OfflineSessionAttestation {
+  id               String         @id @default(uuid())
+  offlineProfileId String
+  officerId        String
+  boothCode        String?
+  createdAt        DateTime       @default(now())
+  expiresAt        DateTime
+  usedAt           DateTime?
+  offlineProfile   OfflineProfile @relation(fields: [offlineProfileId], references: [id])
+  officer          BoothOfficer   @relation(fields: [officerId], references: [id])
+
+  @@index([offlineProfileId, createdAt])
+  @@index([officerId, createdAt])
+  @@index([expiresAt])
+}
+
+model OfflineAuditEvent {
+  id               String          @id @default(uuid())
+  userId           String?
+  offlineProfileId String?
+  eventType        String
+  status           String
+  reason           String?
+  metadata         Json?
+  txHash           String?
+  createdAt        DateTime        @default(now())
+  user             User?           @relation(fields: [userId], references: [id])
+  offlineProfile   OfflineProfile? @relation(fields: [offlineProfileId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([offlineProfileId, createdAt])
+}

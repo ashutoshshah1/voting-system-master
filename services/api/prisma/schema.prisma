@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  fullName      String
+  passwordHash  String?
+  nid           String        @unique
+  dob           String
+  role          Role          @default(USER)
+  kycStatus     KycStatus     @default(PENDING)
+  walletAddress String?       @unique
+  walletEncryptedKey String?
+  voterIdHash   String?       @unique
+  kycSubmission KycSubmission?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model KycSubmission {
+  id           String     @id @default(uuid())
+  userId       String     @unique
+  documentType String
+  documentUrl  String
+  status       KycStatus  @default(PENDING)
+  reviewedBy   String?
+  reviewNote   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id])
+}
+
+model CandidateAsset {
+  id          String   @id @default(uuid())
+  candidateId Int      @unique
+  name        String
+  party       String
+  imageKey    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
