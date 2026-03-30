@@ -15,6 +15,13 @@
   <img alt="Offline Booth" src="https://img.shields.io/badge/Offline-RFID%20%2B%20PIN-0b3b66?style=for-the-badge">
 </p>
 
+## Demo Video
+
+Watch the latest short project demo here:
+
+- [Open `short.mp4`](https://github.com/ashutoshshah1/voting-system-master/releases/download/docs-short-video-2026-03-30/short.mp4)
+- [View the GitHub release](https://github.com/ashutoshshah1/voting-system-master/releases/tag/docs-short-video-2026-03-30)
+
 ---
 
 ## What This Project Does
